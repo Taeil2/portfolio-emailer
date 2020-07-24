@@ -3,7 +3,10 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const helmet = require('helmet')
-const { NODE_ENV } = require('./config')
+const { NODE_ENV, EMAIL_PASS } = require('./config')
+var nodemailer = require('nodemailer');
+const { endianness } = require('os')
+const bodyparser = express.json()
 
 const app = express()
 
@@ -16,7 +19,37 @@ app.use(helmet())
 app.use(cors())
 
 app.get('/', (req, res) => {
-  res.send('Hello, world!')
+  res.send("Hello! This is taeil2's back end")
+})
+
+app.post('/contact', bodyparser, (req, res) => {
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'taeil2@gmail.com',
+      pass: EMAIL_PASS,
+    }
+  });
+
+  const mailOptions = {
+    from: 'taeil2@taeil2.com', // sender address
+    to: 'taeil2@gmail.com', // list of receivers
+    subject: `Message from Taeil2.com - ${req.body.name} (${req.body.email})`, // Subject line
+    html: `
+      <p>Message from Taeil2.com</p>
+      <p>From ${req.body.name} (${req.body.email})</p>
+      <br />
+      <p>${req.body.message}</p>
+    ` // plain text body
+  };
+
+  transporter.sendMail(mailOptions, function (err, info) {
+    if(err)
+      console.log(err)
+    else
+      console.log(info);
+      res.send(info);
+  });
 })
 
 app.use(function errorHandler(error, req, res, next) {
