@@ -7,6 +7,7 @@ const { NODE_ENV, EMAIL_PASS } = require('./config')
 var nodemailer = require('nodemailer');
 const { endianness } = require('os')
 const bodyparser = express.json()
+const sgMail = require('@sendgrid/mail');
 
 const app = express()
 
@@ -23,6 +24,25 @@ app.get('/', (req, res) => {
 })
 
 app.post('/contact', bodyparser, (req, res) => {
+  // Using SendGrid
+  sgMail.setApiKey('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');
+
+  const msg = {
+    to: 'taeil2@gmail.com',
+    from: 'taeil2@gmail.com',
+    subject: `Message from ${req.body.name} (${req.body.email})`,
+    text: req.body.message,
+    html: `<p>Message from Taeil2.com</p><p>From ${req.body.name} (${req.body.email})</p><br /><p>${req.body.message}</p>`,
+  };
+
+  sgMail.send(msg).then((response) => {
+    res.sendStatus(response[0].statusCode);
+  }).catch((error) => {
+    console.log(error.response.body)
+  })
+
+  /*
+  // This code is using node-mailer
   var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -48,8 +68,8 @@ app.post('/contact', bodyparser, (req, res) => {
       console.log(err)
     else
       console.log(info);
-      res.send(info);
   });
+  */
 })
 
 app.use(function errorHandler(error, req, res, next) {
